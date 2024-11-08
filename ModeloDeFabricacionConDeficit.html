@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modelo de Fabricación con déficit</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <h1>MODELO DE FABRICACIÓN CON DÉFICIT</h1>
+
+    <div class="form-container">
+        <label for="demanda">Demanda (D):</label>
+        <input type="number" id="demanda" placeholder="Ingrese demanda">
+        <select id="periodoDemanda">
+            <option value="anual">u/año</option>
+            <option value="mensual">u/mes</option>
+        </select>
+
+        <label for="costoFabricacion">Costo de fabricación (H):</label>
+        <input type="number" id="costoFabricacion" placeholder="Ingrese el costo de fabricación">
+
+        <label for="mantenimiento">Costo de mantenimiento (M):</label>
+        <input type="number" id="mantenimiento" placeholder="Ingrese costo de mantenimiento">
+        <select id="periodoMantenimiento">
+            <option value="anual">$/año</option>
+            <option value="mensual">$/mes</option>
+        </select>
+
+        <label for="tasaFabricacion">Tasa de fabricación (W):</label>
+        <input type="number" id="tasaFabricacion" placeholder="Ingrese tasa de fabricación">
+        <select id="periodoTasaFabricacion">
+            <option value="anual">u/año</option>
+            <option value="mensual">u/mes</option>
+        </select>
+
+        <label for="costoDeficit">Costo del déficit (E):</label>
+        <input type="number" id="costoDeficit" placeholder="Ingrese costo de déficit">
+
+        <label for="costoUnitario">Costo unitario (P):</label>
+        <input type="number" id="costoUnitario" placeholder="Ingrese costo unitario">
+
+        <button onclick="calcular()">Calcular</button>
+
+        <div id="resultado" class="resultado">
+            <!-- Los resultados se mostrarán aquí -->
+        </div>
+
+        <button onclick="location.href='index.html'" style="margin-top: 10px;">Volver al Menú Principal</button>
+    </div>
+
+    <script>
+        function calcular() {
+            let demanda = parseFloat(document.getElementById('demanda').value);
+            let costoFabricacion = parseFloat(document.getElementById('costoFabricacion').value);
+            let mantenimiento = parseFloat(document.getElementById('mantenimiento').value);
+            let tasaFabricacion = parseFloat(document.getElementById('tasaFabricacion').value);
+            let costoDeficit = parseFloat(document.getElementById('costoDeficit').value);
+            let costoUnitario = parseFloat(document.getElementById('costoUnitario').value);
+
+            let periodoDemanda = document.getElementById('periodoDemanda').value;
+            let periodoMantenimiento = document.getElementById('periodoMantenimiento').value;
+            let periodoTasaFabricacion = document.getElementById('periodoTasaFabricacion').value;
+
+            // Validar entradas numéricas
+            if (isNaN(demanda) || isNaN(costoFabricacion) || isNaN(mantenimiento) || isNaN(tasaFabricacion) || isNaN(costoDeficit) || isNaN(costoUnitario)) {
+                alert("Por favor, ingrese todos los valores numéricos.");
+                return;
+            }
+
+            // Convertir demanda a anual si está en meses
+            if (periodoDemanda === "mensual") {
+                demanda *= 12;
+            }
+
+            // Convertir mantenimiento a anual si está en meses
+            if (periodoMantenimiento === "mensual") {
+                mantenimiento *= 12;
+            }
+
+            // Convertir tasa de fabricación a anual si está en meses
+            if (periodoTasaFabricacion === "mensual") {
+                tasaFabricacion *= 12;
+            }
+
+            // Cálculos
+            let q = Math.sqrt((2 * costoFabricacion * demanda) / (mantenimiento * (1 - (demanda / tasaFabricacion)))) * Math.sqrt((mantenimiento + costoDeficit) / costoDeficit);
+            let f = Math.round(Math.sqrt((2 * costoFabricacion * demanda) / costoDeficit) * Math.sqrt((1 - (demanda / tasaFabricacion)) * (mantenimiento / (mantenimiento + costoDeficit))));
+            let ct = ((costoUnitario * demanda)) + ((costoFabricacion * (demanda / q))) + ((mantenimiento / (2 * q)) * Math.pow((q * (1 - (demanda / tasaFabricacion)) - f), 2) * (1 / (1 - (demanda / tasaFabricacion)))) + (((costoDeficit * Math.pow(f, 2)) / (2 * q)) * (1 / (1 - (demanda / tasaFabricacion))));
+            let n = demanda / q;
+            let im = q * (1 - (demanda / tasaFabricacion)) - f;            
+            let tExistencia = ((im / demanda) + (im / (tasaFabricacion - demanda))) * 250; // Tiempo de existencia en días
+            let tDeficit = (f * ((1 / demanda) + (1 / (tasaFabricacion - demanda)))) * 250; // Tiempo de déficit en días
+
+            // Mostrar resultados
+            document.getElementById('resultado').innerHTML = `
+                <p>Cantidad óptima de manufacturación <br> 
+                    <mark> Q = ${q.toFixed(2)} unidades </mark> </p>
+                <p>Número óptimo de unidades agotadas <br>
+                    <mark> F = ${f} unidades </mark></p>
+                <p>Costo anual óptimo <br>
+                    <mark> CT = ${ct.toFixed(2)} $ </mark></p>
+                <p>Número de tandas de producción <br>
+                    <mark> N = ${n.toFixed(2)} tandas/año </mark></p>
+                <p>Inventario máximo <br>
+                    <mark> Iₘ =  ${im.toFixed(2)} unidades </mark></p>
+                <p>Tiempo de existencia de inventarios <br>
+                    <mark> (t₁ + t₂) = ${tExistencia.toFixed(2)} días </mark></p>
+                <p>Duración de los déficit <br>
+                    <mark> (t₃ + t₄) = ${tDeficit.toFixed(2)} días </mark> </p>
+                <p><b>Para el cálculo del tiempo en dias se han puesto 250 días hábiles por año</b></p>
+            `;
+        }
+    </script>
+</body>
+</html>

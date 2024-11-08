@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modelo de compra con déficit</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <h1>MODELO DE COMPRA CON DÉFICIT</h1>
+
+    <div class="form-container">
+        <label for="demanda">Demanda (D):</label>
+        <input type="number" id="demanda" placeholder="Ingrese demanda">
+        <select id="periodoDemanda">
+            <option value="anual">u/año</option>
+            <option value="mensual">u/mes</option>
+        </select>
+
+        <label for="costoHacerCompra">Costo de hacer la compra (H):</label>
+        <input type="number" id="costoHacerCompra" placeholder="Ingrese el costo">
+
+        <label for="tenencia">Costo de tenencia (M):</label>
+        <input type="number" id="tenencia" placeholder="Ingrese costo de tenencia">
+        <select id="periodoTenencia">
+            <option value="anual">$/año</option>
+            <option value="mensual">$/mes</option>
+        </select>
+
+        <label for="costoDeficit">Costo del déficit (E):</label>
+        <input type="number" id="costoDeficit" placeholder="Ingrese costo de déficit">
+        <select id="periodoDeficit">
+            <option value="anual">$/u-año</option>
+            <option value="mensual">$/u-mes</option>
+        </select>
+
+        <label for="costoUnitario">Costo unitario (P):</label>
+        <input type="number" id="costoUnitario" placeholder="Ingrese costo unitario">
+
+        <button onclick="calcular()">Calcular</button>
+
+        <div id="resultado" class="resultado">
+            <!-- Los resultados se mostrarán aquí -->
+        </div>
+
+        <button onclick="location.href='index.html'" style="margin-top: 10px;">Volver al Menú Principal</button>
+    </div>
+
+    <script>
+        function calcular() {
+            let demanda = parseFloat(document.getElementById('demanda').value);
+            let costoHacerCompra = parseFloat(document.getElementById('costoHacerCompra').value);
+            let tenencia = parseFloat(document.getElementById('tenencia').value);
+            let costoDeficit = parseFloat(document.getElementById('costoDeficit').value);
+            let costoUnitario = parseFloat(document.getElementById('costoUnitario').value);
+            
+            let periodoDemanda = document.getElementById('periodoDemanda').value;
+            let periodoTenencia = document.getElementById('periodoTenencia').value;
+            let periodoDeficit = document.getElementById('periodoDeficit').value;
+
+            // Validar entradas numéricas
+            if (isNaN(demanda) || isNaN(costoHacerCompra) || isNaN(tenencia) || isNaN(costoDeficit) || isNaN(costoUnitario)) {
+                alert("Por favor, ingrese todos los valores numéricos.");
+                return;
+            }
+
+            // Convertir demanda a anual si está en meses
+            if (periodoDemanda === "mensual") {
+                demanda *= 12;
+            }
+
+            // Convertir tenencia a anual si está en meses
+            if (periodoTenencia === "mensual") {
+                tenencia *= 12;
+            }
+
+            // Convertir déficit a anual si está en meses
+            if (periodoDeficit === "mensual") {
+                costoDeficit *= 12;
+            }
+
+            // Cálculos
+            let q = Math.round(Math.sqrt((2 * costoHacerCompra * demanda) / tenencia) * Math.sqrt((tenencia + costoDeficit) / costoDeficit));
+            let f = Math.round(Math.sqrt((2 * costoHacerCompra * demanda) / costoDeficit) * Math.sqrt(tenencia / (tenencia + costoDeficit)));
+            let ct = (costoUnitario * demanda) + (costoHacerCompra * (demanda / q)) + (tenencia * Math.pow((q - f), 2) / (2 * q)) + (costoDeficit * Math.pow(f, 2) / (2 * q));
+            let n = (demanda / q).toFixed(3); // Número de pedidos por año con 3 decimales
+            let t = (q / demanda) * 12; // Tiempo entre pedidos en meses
+            let tDeficit = (f / demanda) * 12; // Tiempo de déficit en meses
+            let inventarioMaximo = Math.round(q - f); // Inventario máximo
+
+            // Mostrar resultados
+            document.getElementById('resultado').innerHTML = `
+                <p>Cantidad óptima a comprarse <br>
+                    <mark> Q = ${q} unidades </mark></p>
+                <p>Número óptimo de unidades agotadas <br>
+                    <mark> F = ${f} unidades </mark></p>
+                <p>Costo total anual óptimo <br>
+                    <mark> CT = ${ct.toFixed(2)} $/año </mark></p>
+                <p>Número de pedidos por año <br>
+                    <mark> N = ${n} pedidos/año </mark></p>
+                <p>Tiempo entre pedidos <br> 
+                    <mark> t = ${t.toFixed(2)} meses </mark></p>
+                <p>Tiempo de déficit <br> 
+                    <mark> t₂ = ${tDeficit} meses </mark></p>
+                <p>Inventario máximo <br> 
+                    <mark> Iₘ = ${inventarioMaximo} unidades </mark></p>
+            `;
+        }
+    </script>
+</body>
+</html>
